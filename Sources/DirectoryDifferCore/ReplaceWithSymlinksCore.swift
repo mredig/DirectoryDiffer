@@ -2,7 +2,7 @@ import Foundation
 import CryptoKit
 import SwiftPizzaSnips
 
-public enum ReplaceWithSymlinksCore {
+public enum DirectoryDifferCore {
 	public static func replaceFiles(
 		in destinationDirectory: URL,
 		withFileSymlinksFrom sourceDirectory: URL,
@@ -17,11 +17,21 @@ public enum ReplaceWithSymlinksCore {
 			}
 
 			let destinationContents = try fm
-				.contentsOfDirectory(at: destinationDirectory, includingPropertiesForKeys: [.isSymbolicLinkKey])
+				.contentsOfDirectory(
+					at: destinationDirectory,
+					includingPropertiesForKeys: [
+						.isSymbolicLinkKey,
+						.isDirectoryKey
+					])
 				.filter(contentFilter)
 
 			let sourceContents = try fm
-				.contentsOfDirectory(at: sourceDirectory, includingPropertiesForKeys: [.isSymbolicLinkKey])
+				.contentsOfDirectory(
+					at: sourceDirectory,
+					includingPropertiesForKeys: [
+						.isSymbolicLinkKey,
+						.isDirectoryKey
+					])
 				.filter(contentFilter)
 
 			let dups = try await duplicates(

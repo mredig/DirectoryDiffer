@@ -6,10 +6,10 @@
 
 import ArgumentParser
 import Foundation
-import ReplaceWithSymlinksCore
+import DirectoryDifferCore
 
 @main
-struct ReplaceWithSymlinks: AsyncParsableCommand {
+struct DirectoryDiffer: AsyncParsableCommand {
 	@Argument(
 		help: "The directory the original files are in",
 		completion: .directory,
@@ -35,7 +35,7 @@ struct ReplaceWithSymlinks: AsyncParsableCommand {
 
 		print("Comparing original files in \(sourceDirectory.relativePath) to potential duplicates in \(destinationDirectory.relativePath)")
 
-		try await ReplaceWithSymlinksCore
+		try await DirectoryDifferCore
 			.replaceFiles(
 				in: destinationDirectory,
 				withFileSymlinksFrom: sourceDirectory,
