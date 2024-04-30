@@ -12,11 +12,14 @@ public enum DirectoryDifferCore {
 
 	private static let queue = SchedulingQueue<HashDigest>()
 
+	private static let progressLock = NSLock()
+
 	public static func compareFiles(
 		between sourceDirectory: URL,
 		and destinationDirectory: URL,
 		comparingHashes: Bool,
-		baseSourceDirectory: URL
+		baseSourceDirectory: URL,
+		progress: Progress?
 	) async throws -> DiffResults {
 		let fm = FileManager.default
 
@@ -78,6 +81,10 @@ public enum DirectoryDifferCore {
 			.intersection(destinationDirectories.keys)
 			.sorted()
 
+		progressLock.withLock {
+			progress?.totalUnitCount += commonDirectories.count.asInt64()
+		}
+
 		for directory in commonDirectories {
 			let newSource = sourceDirectory.appending(component: directory, directoryHint: .isDirectory)
 			let newDestination = destinationDirectory.appending(component: directory, directoryHint: .isDirectory)
@@ -86,9 +93,13 @@ public enum DirectoryDifferCore {
 				between: newSource,
 				and: newDestination,
 				comparingHashes: comparingHashes,
-				baseSourceDirectory: baseSourceDirectory)
+				baseSourceDirectory: baseSourceDirectory,
+				progress: progress)
 
 			out.merge(recursiveResults)
+			progressLock.withLock {
+				progress?.completedUnitCount += 1
+			}
 		}
 
 		let currentPath = baseSourceDirectory.relativePathComponents(to: sourceDirectory)
@@ -103,10 +114,18 @@ public enum DirectoryDifferCore {
 			.sorted()
 			.map { currentPath + [$0] }
 		out.justDestination.append(contentsOf: destinationOnlyDirectories)
+		progressLock.withLock {
+			let exclusiveDirCount = (sourceOnlyDirectories.count + destinationOnlyDirectories.count).asInt64()
+			progress?.totalUnitCount += exclusiveDirCount
+			progress?.completedUnitCount += exclusiveDirCount
+		}
 
 		let commonFiles = Set(sourceFiles.keys)
 			.intersection(destinationFiles.keys)
 			.sorted()
+		progressLock.withLock {
+			progress?.totalUnitCount += commonFiles.count.asInt64()
+		}
 
 		let sourceOnlyFiles = Set(sourceFiles.keys)
 			.subtracting(commonFiles)
@@ -119,10 +138,20 @@ public enum DirectoryDifferCore {
 			.sorted()
 			.map { currentPath + [$0] }
 		out.justDestination.append(contentsOf: destinationOnlyFiles)
+		progressLock.withLock {
+			let exclusiveFileCount = (sourceOnlyFiles.count + destinationOnlyFiles.count).asInt64()
+			progress?.totalUnitCount += exclusiveFileCount
+			progress?.completedUnitCount += exclusiveFileCount
+		}
 
 		let commonResults = await withTaskGroup(of: DiffResults.Diff.self, returning: DiffResults.self) { group in
 			var diffResults = DiffResults()
 			for file in commonFiles {
+				defer {
+					progressLock.withLock {
+						progress?.completedUnitCount += 1
+					}
+				}
 				guard
 					let sourceURL = sourceFiles[file],
 					let destinationURL = destinationFiles[file]

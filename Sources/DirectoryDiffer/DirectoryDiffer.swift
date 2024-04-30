@@ -28,11 +28,19 @@ struct DirectoryDiffer: AsyncParsableCommand {
 	mutating func run() async throws {
 		print("Comparing original files in \(sourceDirectory.relativePath) to \(destinationDirectory.relativePath)")
 
+		let progress = Progress()
+		let tracker = progress.publisher(for: \.fractionCompleted)
+			.sink {
+				print("\(progress.completedUnitCount) of \(progress.totalUnitCount) - \($0)")
+			}
+		defer { tracker.cancel() }
+
 		let differences = try await DirectoryDifferCore.compareFiles(
 			between: sourceDirectory,
 			and: destinationDirectory,
 			comparingHashes: compareHashes,
-			baseSourceDirectory: sourceDirectory)
+			baseSourceDirectory: sourceDirectory,
+			progress: progress)
 
 		print("Identical Items:\n\n")
 		for identicalItem in differences.identical {
