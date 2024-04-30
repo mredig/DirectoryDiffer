@@ -44,17 +44,17 @@ struct DirectoryDiffer: AsyncParsableCommand {
 
 		print("Identical Items:\n\n")
 		for identicalItem in differences.identical {
-			print(identicalItem)
+			print(identicalItem.joined(separator: "/"))
 		}
 
 		print("Just in source directory:\n\n")
 		for sourceItem in differences.justSource {
-			print(sourceItem)
+			print(sourceItem.joined(separator: "/"))
 		}
 
 		print("Just in destination directory:\n\n")
 		for destinationItem in differences.justDestination {
-			print(destinationItem)
+			print(destinationItem.joined(separator: "/"))
 		}
 
 		print("Differing files:\n\n")
