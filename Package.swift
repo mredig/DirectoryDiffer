@@ -10,7 +10,8 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.2.0"),
-		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.0")),
+		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.5")),
+//		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", branch: "0.4.5a"),
 	],
 	targets: [
 		// Targets are the basic building blocks of a package, defining a module or a test suite.

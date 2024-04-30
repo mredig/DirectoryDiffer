@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mredig/SwiftPizzaSnips.git",
       "state" : {
-        "revision" : "84ab2add6ad0d420eb3c75532da7d70c84e708b2",
-        "version" : "0.4.3"
+        "revision" : "fe2f1b138ba3cba3dc5b57186140e04c1d9affd1",
+        "version" : "0.4.5"
       }
     }
   ],
