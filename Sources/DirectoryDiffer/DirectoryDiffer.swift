@@ -11,35 +11,47 @@ import DirectoryDifferCore
 @main
 struct DirectoryDiffer: AsyncParsableCommand {
 	@Argument(
-		help: "The directory the original files are in",
+		help: "Source Directory",
 		completion: .directory,
 		transform: { URL(fileURLWithPath: $0, relativeTo: .currentDirectory()) })
 	var sourceDirectory: URL
 
 	@Argument(
-		help: "The directory with duplicated files that should get replaced with symlinks",
+		help: "Compared Directory",
 		completion: .directory,
 		transform: { URL(fileURLWithPath: $0, relativeTo: .currentDirectory()) })
 	var destinationDirectory: URL
 
-	@Flag(help: "Compare hashes")
+	@Flag(help: "Compare via hashes - slower than comparing via timestamps and size, but more accurate")
 	var compareHashes = false
 
-	@Flag(help: "Dry run - don't actually make changes")
-	var dryRun = false
-
 	mutating func run() async throws {
-		if dryRun {
-			print("Dry run. No changes will be made...")
+		print("Comparing original files in \(sourceDirectory.relativePath) to \(destinationDirectory.relativePath)")
+
+		let differences = try await DirectoryDifferCore.compareFiles(
+			between: sourceDirectory,
+			and: destinationDirectory,
+			comparingHashes: compareHashes,
+			baseSourceDirectory: sourceDirectory)
+
+		print("Identical Items:\n\n")
+		for identicalItem in differences.identical {
+			print(identicalItem)
 		}
 
-		print("Comparing original files in \(sourceDirectory.relativePath) to potential duplicates in \(destinationDirectory.relativePath)")
+		print("Just in source directory:\n\n")
+		for sourceItem in differences.justSource {
+			print(sourceItem)
+		}
 
-		try await DirectoryDifferCore
-			.replaceFiles(
-				in: destinationDirectory,
-				withFileSymlinksFrom: sourceDirectory,
-				commit: !dryRun,
-				compareHashes: compareHashes)
+		print("Just in destination directory:\n\n")
+		for destinationItem in differences.justDestination {
+			print(destinationItem)
+		}
+
+		print("Differing files:\n\n")
+		for differentItem in differences.different {
+			print(differentItem)
+		}
 	}
 }
