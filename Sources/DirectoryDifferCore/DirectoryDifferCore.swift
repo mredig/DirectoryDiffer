@@ -257,7 +257,17 @@ public enum DirectoryDifferCore {
 			return new
 		}
 
-		public struct Diff: Comparable, Hashable, Equatable {
+		public struct Diff: Comparable, Hashable, Equatable, CustomStringConvertible {
+			private static let dateFormatter = DateFormatter().with {
+				$0.timeStyle = .short
+				$0.dateStyle = .short
+			}
+
+			private static let byteFormatter = ByteCountFormatter().with {
+				$0.countStyle = .file
+				$0.includesActualByteCount = true
+			}
+
 			public let path: [String]
 			public let creationDate: Duple<Date>
 			public let modificationDate: Duple<Date>
@@ -266,6 +276,29 @@ public enum DirectoryDifferCore {
 
 			public static func < (lhs: Diff, rhs: Diff) -> Bool {
 				lhs.path < rhs.path
+			}
+
+			public var description: String {
+				var out = "file: \(path.joined(separator: "/"))"
+
+				if creationDate.isMatching == false {
+					out += "\ncreation (source): \(Self.dateFormatter.string(from: creationDate.source))"
+					out += "\ncreation (destination): \(Self.dateFormatter.string(from: creationDate.destination))"
+				}
+				if modificationDate.isMatching == false {
+					out += "\nmodification (source): \(Self.dateFormatter.string(from: modificationDate.source))"
+					out += "\nmodification (destination): \(Self.dateFormatter.string(from: modificationDate.destination))"
+				}
+				if fileSize.isMatching == false {
+					out += "\nfile size (source): \(Self.byteFormatter.string(fromByteCount: fileSize.source.asInt64()))"
+					out += "\nfile size (destination): \(Self.byteFormatter.string(fromByteCount: fileSize.destination.asInt64()))"
+				}
+				if let hashes, hashes.isMatching == false {
+					out += "\nhash (source): \(hashes.source.toHexString())"
+					out += "\nhash (destination): \(hashes.destination.toHexString())"
+				}
+
+				return out
 			}
 		}
 	}

@@ -14,4 +14,6 @@ extension Duple: Comparable where T: Comparable {
 	}
 }
 extension Duple: Hashable where T: Hashable {}
-extension Duple: Equatable where T: Equatable {}
+extension Duple: Equatable where T: Equatable {
+	var isMatching: Bool { source == destination }
+}
