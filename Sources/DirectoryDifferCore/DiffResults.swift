@@ -52,6 +52,13 @@ public struct DiffResults {
 		public let fileSize: Duple<Int>
 		public internal(set) var hashes: Duple<HashDigest>?
 
+		public var isMatching: Bool {
+			creationDate.isMatching
+			&& modificationDate.isMatching
+			&& fileSize.isMatching
+			&& (hashes?.isMatching ?? true)
+		}
+
 		public static func < (lhs: Diff, rhs: Diff) -> Bool {
 			lhs.path < rhs.path
 		}
